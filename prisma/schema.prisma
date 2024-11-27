@@ -1,0 +1,50 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String      @id @default(cuid())
+  email     String      @unique
+  password  String
+  name      String
+  role      String      // 'developer' or 'customer'
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  algorithms Algorithm[] @relation("AuthoredAlgorithms")
+  purchases Purchase[]
+}
+
+model Algorithm {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  language    String
+  complexity  String
+  type        String     // 'sale', 'lease', or 'subscription'
+  tags        String[]
+  authorId    String
+  author      User       @relation("AuthoredAlgorithms", fields: [authorId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  purchases   Purchase[]
+}
+
+model Purchase {
+  id          String    @id @default(cuid())
+  algorithmId String
+  algorithm   Algorithm @relation(fields: [algorithmId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  type        String    // 'sale', 'lease', or 'subscription'
+  amount      Float
+  status      String    // 'pending', 'completed', 'failed'
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
